@@ -435,16 +435,16 @@ defmodule Playwright.BrowserContext do
   Adds a function called `param: name` on the `window` object of every
   frame in every page in the context.
   """
-  @spec expose_binding(t(), String.t(), function(), options()) :: :ok
+  @spec expose_binding(t(), String.t(), function(), options()) :: subject()
   def expose_binding(%BrowserContext{session: session} = context, name, callback, options \\ %{}) do
     bindings = context.bindings
     Channel.patch(session, {:guid, context.guid}, %{bindings: Map.merge(bindings, %{name => callback})})
 
     params = Map.merge(%{name: name, needs_handle: false}, options)
-    Channel.post(session, {:guid, context.guid}, :expose_binding, params)
+    post!(context, :expose_binding, params)
   end
 
-  @spec expose_function(t(), String.t(), function()) :: :ok
+  @spec expose_function(t(), String.t(), function()) :: subject()
   def expose_function(context, name, callback) do
     expose_binding(context, name, fn _, args ->
       callback.(args)
@@ -508,7 +508,7 @@ defmodule Playwright.BrowserContext do
     Channel.list(context.session, {:guid, context.guid}, "Page")
   end
 
-  @spec route(t(), binary(), function(), map()) :: :ok
+  @spec route(t(), binary(), function(), map()) :: subject()
   def route(context, pattern, handler, options \\ %{})
 
   def route(%BrowserContext{session: session} = context, pattern, handler, _options) do
@@ -520,7 +520,7 @@ defmodule Playwright.BrowserContext do
       patterns = Helpers.RouteHandler.prepare(routes)
 
       Channel.patch(session, {:guid, context.guid}, %{routes: routes})
-      Channel.post(session, {:guid, context.guid}, :set_network_interception_patterns, %{patterns: patterns})
+      post!(context, :set_network_interception_patterns, %{patterns: patterns})
     end)
   end
 
@@ -556,9 +556,9 @@ defmodule Playwright.BrowserContext do
 
   # ---
 
-  @spec set_offline(t(), boolean()) :: :ok
-  def set_offline(%BrowserContext{session: session} = context, offline) do
-    Channel.post(session, {:guid, context.guid}, :set_offline, %{offline: offline})
+  @spec set_offline(t(), boolean()) :: subject()
+  def set_offline(%BrowserContext{} = context, offline) do
+    post!(context, :set_offline, %{offline: offline})
   end
 
   # ---
