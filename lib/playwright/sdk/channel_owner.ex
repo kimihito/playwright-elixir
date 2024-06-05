@@ -97,9 +97,9 @@ defmodule Playwright.SDK.ChannelOwner do
         {:ok, event.target}
       end
 
-      defp post!(owner, action, data) do
+      defp post!(owner, action, data \\ %{}) do
         case Channel.post(owner.session, {:guid, owner.guid}, action, data) do
-          # simple "succes": send "self"
+          # simple "success": send "self"
           {:ok, %{id: _}} ->
             Channel.find(owner.session, {:guid, owner.guid})
         end
